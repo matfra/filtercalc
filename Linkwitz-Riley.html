@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Linkwitz-Riley filter calculator</title>
+	</head>
+
+	<body>
+		<p id="demo"></p>
+<script>
+var PI = 3.141592653589793
+var AVAILABLE_CAPACITORS=[3.3e-9];
+
+var AVAILABLE_RESISTORS=[
+     1, 2.2, 4.7, 5.6,
+     7.5, 8.2, 10, 15,
+     22, 27, 33, 39,
+     47, 56, 68, 75,
+     82, 100, 120, 150,
+     180, 220, 270, 330,
+     390, 470, 510, 680,
+     820, 1000, 1500, 2200,
+     3000, 3900, 4700, 5600,
+     6800, 7500, 8200, 10000,
+     15000, 22000, 33000, 39000,
+     47000, 56000, 68000, 75000,
+     82000, 100000, 150000, 180000,
+     220000, 330000, 470000, 560000,
+     680000, 1000000, 1500000, 2000000,
+     3300000, 4700000, 5600000, 10000000 ];
+
+
+	function parallel(a, b, component) {
+		switch (component) {
+			case 'r':
+				return ( a * b ) / ( a + b );
+				break;
+			case 'c':
+				return a + b;
+				break;
+			}
+		}
+
+	function series(a, b, component) {
+		switch (component) {
+			case 'r':
+				return a + b;
+			case 'c':
+				return ( a * b ) / ( a + b );
+			}
+		}
+
+	function compare(value, target, precision) {
+		return Math.abs ( 1 - ( value / target ) ) < precision
+	}
+
+	function list_combo(stock, component) {
+		result = []
+		 for (i = 0; i < stock.length; i++) {
+		 	result = result.concat([stock[i]]);
+    	for (j = 0; j < stock.length; j++) {
+        result = result.concat(series(stock[i], stock[j], component));
+			  result = result.concat(parallel(stock[i], stock[j], component));
+			}
+		}
+		return result
+	}
+
+	function find_combo(target, stock, component, precision) {
+		result=[]
+		 for (i = 0; i < stock.length; i++) {
+		 	if ( compare(stock[i], target, precision) ) {
+		 		result = result.concat([stock[i]]);
+		 	} else {
+    		for (j = 0; j < stock.length; j++) {
+    			if (compare(
+    			series(stock[i], stock[j], component),
+    			target,
+    			precision)) {
+            result = result.concat([stock[i] + ' -- ' + stock[j]]);
+        	}
+          if (compare(
+					parallel(stock[i], stock[j], component),
+					target,
+					precision)) {
+					  result = result.concat([stock[i] + ' // ' + stock[j]]);
+					}
+				}
+		 	}
+		}
+		return result
+	}
+
+	function get_freq(r,c) {
+		return 1 / ( 2.83 * PI * c * r)
+	}
+
+	function get_r(f,c) {
+		return 1 / ( 2.83 * PI * c * f)
+	}
+
+	function list_freq(r_stock, c_stock) {
+		r = list_combo(r_stock, 'r');
+		c = list_combo(c_stock, 'c');
+		frequencies = [];
+		for (i = 0; i < r.length; i++) {
+			for (j = 0; j < c.length; j++) {
+				 frequencies = frequencies.concat([get_freq(r[i],c[j])]);
+			}
+		}
+		return frequencies
+	}
+
+	function get_best_freq(f_target, r_stock, c_stock) {
+		frequencies = list_freq(r_stock, c_stock);
+		best_match = 0;
+		for (i = 0; i < frequencies.length; i++) {
+			if (Math.abs(f_target - best_match) > Math.abs(f_target - frequencies[i])) {
+				best_match = frequencies[i];
+			}
+		}
+		return best_match
+	}
+
+// TO-DO: get freq for every combination of c and r
+// Get closest frequency with combination
+	function getQueryParams(qs) {
+    	qs = qs.split('+').join(' ');
+	
+    	var params = {},
+    	    tokens,
+    	    re = /[?&]?([^=]+)=([^&]*)/g;
+	
+    	while (tokens = re.exec(qs)) {
+    	    params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+    	}
+	
+    		return params;
+	}
+
+	var query = getQueryParams(document.location.search);
+
+	document.getElementById("demo").innerHTML = get_best_freq( query.freq, AVAILABLE_RESISTORS, AVAILABLE_CAPACITORS);
+
+
+
+</script>
+
+<form action="Linkwitz-Riley.html">
+Cutoff Frequency: <input type="text" name="freq" value="2400"><br>
+<input type="submit" value="Submit">
+</form>
+
+	</body>
+</html>
