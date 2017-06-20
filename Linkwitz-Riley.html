@@ -5,7 +5,16 @@
 	</head>
 
 	<body>
+		<form action="Linkwitz-Riley.html">
+Cutoff Frequency: <input type="text" name="f" value="2400"><br>
+Available resistors: (csv in ohms): <input type="text" name="r" value="22000,11000,4700"><br>
+Available capacitors: (csv in F) <input type="text" name="c" value="22e-9,3.3e-9"><br>
+<input type="submit" value="Submit">
+</form>
+
 		<p id="demo"></p>
+
+
 <script>
 var PI = 3.141592653589793
 var AVAILABLE_CAPACITORS=[3.3e-9];
@@ -139,16 +148,14 @@ var AVAILABLE_RESISTORS=[
 
 	var query = getQueryParams(document.location.search);
 
-	document.getElementById("demo").innerHTML = get_best_freq( query.freq, AVAILABLE_RESISTORS, AVAILABLE_CAPACITORS);
-
-
+	document.getElementById("demo").innerHTML = get_best_freq(
+		query.f,
+		query.r.split(","),
+		query.c.split(","));
 
 </script>
 
-<form action="Linkwitz-Riley.html">
-Cutoff Frequency: <input type="text" name="freq" value="2400"><br>
-<input type="submit" value="Submit">
-</form>
+
 
 	</body>
 </html>
